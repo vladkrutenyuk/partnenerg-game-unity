@@ -7,7 +7,8 @@ public class PlayerController : MonoBehaviour
 	private const float _speedWalk = 4f;
 	private const float _speedRun = 8f;
 	private const float _speedCrouch = 2f;
-    private const float _speedMoveInFlight = 3f;
+    private const float _speedJump = 5f;
+    private const float _speedMoveInFlight = 2f;
     private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
 	private const float _mouseSensitivity = 3f;
@@ -18,6 +19,8 @@ public class PlayerController : MonoBehaviour
     private Vector3 _savedMotion;
     private Vector3 _movementComponent;
     private Vector3 _impulseComponent;
+    private Vector3 _jumpComponent;
+
     private float _gravityComponent = 0f;
     private float _currentRotationX;
     private bool _isGrounded = true;
@@ -36,7 +39,12 @@ public class PlayerController : MonoBehaviour
             _savedMotion = Vector3.zero;
             _gravityComponent = 0;
             _motion = _movementComponent;
-            _savedMotion = _motion;  
+            _savedMotion = _motion;
+
+            if(Input.GetKey(KeyCode.Space))
+            {
+                StartCoroutine(Jump());
+            }
         }
         else
         {
@@ -46,7 +54,7 @@ public class PlayerController : MonoBehaviour
             _motion = _savedMotion + new Vector3(0, _gravityComponent, 0);
         }
 
-        _motion += _impulseComponent;
+        _motion += _impulseComponent + _jumpComponent;
 
 		_controller.Move(_motion * Time.deltaTime);
 
@@ -63,7 +71,10 @@ public class PlayerController : MonoBehaviour
         Vector3 direction = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         direction = transform.TransformDirection(direction);
         direction.y = ConsiderGroundSlope(direction);
-        return direction.normalized;
+
+        direction = Vector3.ClampMagnitude(direction, 1);
+
+        return direction;
     }
 
     private float GetMovementSpeed()
@@ -80,6 +91,26 @@ public class PlayerController : MonoBehaviour
         }
 
         return speed;
+    }
+
+    private IEnumerator Jump()
+    {
+        _jumpComponent = new Vector3(0, _speedJump, 0);
+
+        yield return new WaitForSeconds(0.1f);
+        while(!_isGrounded)
+        {
+            if(Physics.Raycast(transform.position + Vector3.up * _controller.height, Vector3.up, 0.1f))
+            {
+                _jumpComponent = Vector3.zero;
+                yield break;
+            }
+            yield return null;
+        }
+
+        _jumpComponent = Vector3.zero;
+
+        yield break;
     }
 
     private void ApplyRotation()
