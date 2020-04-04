@@ -2,16 +2,17 @@
 
 public class PlayerController : MonoBehaviour
 {
-	private const float _speedMove = 4f;// м/с
-	// private const float _speedJump = 3f;// м/с
-	private const float _gravity = 10f;// м/с^2
+	private const float _speedWalk = 4f;
+	private const float _speedRun = 8f;
+	private const float _speedCrouch = 2f;
+    private const float _speedMoveInFlight = 3f;
+	private const float _gravity = 10f;
 	private const float _mouseSensitivity = 3f;
     private const float _minRotX = -70f;
 	private const float _maxRotX = 80f;
 
 	private float _currentRotationX;
-	// private bool _isJumping = false;
-	// private bool _isSloping = false;
+	private bool _isJumping = false;
     private bool _isGrounded = true;
     private Vector3 _motion;
     private Vector3 _savedMotion;
@@ -38,7 +39,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             _gravityComponent -= _gravity * Time.deltaTime;
-            //_movementComponent *= 0.4f;
+            _movementComponent = Vector3.ClampMagnitude(_movementComponent, _speedMoveInFlight);
             _savedMotion = Vector3.ClampMagnitude(_savedMotion + _movementComponent, _savedMotion.magnitude);
             _motion = _savedMotion + new Vector3(0, _gravityComponent, 0);
         }
@@ -62,15 +63,15 @@ public class PlayerController : MonoBehaviour
 
     private float GetMovementSpeed()
     {
-        float speed = _speedMove;
+        float speed = _speedWalk;
 
         if(Input.GetKey(KeyCode.LeftShift))
         {
-            speed = _speedMove * 2;
+            speed = _speedRun;
         }
         if(Input.GetKey(KeyCode.LeftControl))
         {
-            speed = _speedMove * 0.5f;
+            speed = _speedCrouch;
         }
 
         return speed;
