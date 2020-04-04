@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 	private const float _speedWalk = 4f;
 	private const float _speedRun = 8f;
 	private const float _speedCrouch = 2f;
+    private const float _speedJump = 5f;
     private const float _speedMoveInFlight = 2f;
     private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
@@ -63,8 +64,6 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _impulseComponent, Color.yellow);
 
 		ApplyRotation();
-
-        print(new Vector2(_motion.x, _motion.z));
 	}
 
     private Vector3 GetMovementDirection()
@@ -96,7 +95,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator Jump()
     {
-        _jumpComponent = new Vector3(0, 5, 0);
+        _jumpComponent = new Vector3(0, _speedJump, 0);
 
         yield return new WaitForSeconds(0.1f);
         while(!_isGrounded)
