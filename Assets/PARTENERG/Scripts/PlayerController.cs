@@ -1,24 +1,26 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
 	private const float _speedWalk = 4f;
 	private const float _speedRun = 8f;
 	private const float _speedCrouch = 2f;
     private const float _speedMoveInFlight = 3f;
+    private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
 	private const float _mouseSensitivity = 3f;
-    private const float _minRotX = -70f;
-	private const float _maxRotX = 80f;
+    private const float _minRotationX = -70f;
+	private const float _maxRotationX = 80f;
 
-	private float _currentRotationX;
-    private bool _isGrounded = true;
-	private bool _isJumping = false;
     private Vector3 _motion;
     private Vector3 _savedMotion;
     private Vector3 _movementComponent;
     private Vector3 _impulseComponent;
     private float _gravityComponent = 0f;
+    private float _currentRotationX;
+    private bool _isGrounded = true;
 
 	[SerializeField] private CharacterController _controller;
 	[SerializeField] private Camera _camera;
@@ -34,7 +36,7 @@ public class PlayerController : MonoBehaviour
             _savedMotion = Vector3.zero;
             _gravityComponent = 0;
             _motion = _movementComponent;
-            _savedMotion = _motion;
+            _savedMotion = _motion;  
         }
         else
         {
@@ -87,7 +89,7 @@ public class PlayerController : MonoBehaviour
 
 		float rotationX = Input.GetAxis("Mouse Y") * _mouseSensitivity;
 		_currentRotationX -= rotationX;
-		_currentRotationX = Mathf.Clamp(_currentRotationX, _minRotX, _maxRotX);
+		_currentRotationX = Mathf.Clamp(_currentRotationX, _minRotationX, _maxRotationX);
 		_camera.transform.localEulerAngles = new Vector3(_currentRotationX, 0, 0);
     }
 
@@ -130,19 +132,35 @@ public class PlayerController : MonoBehaviour
     public void AddImpulse(Vector3 impulse)
     {
         _impulseComponent += impulse;
+
+        StopCoroutine(WillStopImpulseOnGround());
+        StartCoroutine(WillStopImpulseOnGround());
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit) 
     {
-        Debug.Log(hit.gameObject.name);
-
         if(_isGrounded)
         {
-            _impulseComponent = Vector3.zero;
             return;
         }
 
-        Vector3 counterImpulse = _impulseComponent * Vector3.Dot(_impulseComponent, hit.normal);
-        _impulseComponent += counterImpulse;
+        float counterImpulseMult = Vector3.Dot(_impulseComponent.normalized, hit.normal.normalized);
+        counterImpulseMult = 1 - Mathf.Abs(counterImpulseMult) / _impulseCounterDivider;
+
+        _impulseComponent *= counterImpulseMult;
+    }
+
+    private IEnumerator WillStopImpulseOnGround()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        while(!_isGrounded)
+        {
+            yield return null;
+        }
+
+        _impulseComponent = Vector3.zero;
+
+        yield break;
     }
 }
