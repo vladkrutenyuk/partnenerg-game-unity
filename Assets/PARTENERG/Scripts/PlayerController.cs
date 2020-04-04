@@ -12,8 +12,8 @@ public class PlayerController : MonoBehaviour
 	private const float _maxRotX = 80f;
 
 	private float _currentRotationX;
-	private bool _isJumping = false;
     private bool _isGrounded = true;
+	private bool _isJumping = false;
     private Vector3 _motion;
     private Vector3 _savedMotion;
     private Vector3 _movementComponent;
@@ -25,11 +25,11 @@ public class PlayerController : MonoBehaviour
 
 	private void Update()
 	{
+        _isGrounded = IsGrounded();
         _motion = Vector3.zero;
-
 		_movementComponent = GetMovementDirection() * GetMovementSpeed();
 
-        if(IsGrounded())
+        if(_isGrounded)
         {
             _savedMotion = Vector3.zero;
             _gravityComponent = 0;
@@ -44,11 +44,14 @@ public class PlayerController : MonoBehaviour
             _motion = _savedMotion + new Vector3(0, _gravityComponent, 0);
         }
 
+        _motion += _impulseComponent;
+
 		_controller.Move(_motion * Time.deltaTime);
 
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _movementComponent, Color.white);
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _motion, Color.blue);
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), new Vector3(0, _gravityComponent, 0), Color.green);
+        Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _impulseComponent, Color.yellow);
 
 		ApplyRotation();
 	}
@@ -120,6 +123,26 @@ public class PlayerController : MonoBehaviour
         {
             velocity.y = 0;
         }
+
         return velocity.y;
 	}
+
+    public void AddImpulse(Vector3 impulse)
+    {
+        _impulseComponent += impulse;
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit) 
+    {
+        Debug.Log(hit.gameObject.name);
+
+        if(_isGrounded)
+        {
+            _impulseComponent = Vector3.zero;
+            return;
+        }
+
+        Vector3 counterImpulse = _impulseComponent * Vector3.Dot(_impulseComponent, hit.normal);
+        _impulseComponent += counterImpulse;
+    }
 }
