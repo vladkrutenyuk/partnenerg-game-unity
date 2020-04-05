@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using DG.Tweening;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
@@ -97,16 +98,15 @@ public class PlayerController : MonoBehaviour
 
     private void SetCrouchMovementType(bool isCrouched)
     {
-        if(isCrouched)
-        {
-            _controller.height = 1f;
-            _camera.transform.localPosition += new Vector3(0, -1f, 0);
-        }
-        else
-        {
-            _controller.height = 2f;
-            _camera.transform.localPosition += new Vector3(0, 1f, 0);
-        }
+        float duration = 0.4f;
+
+        float height = isCrouched ? 1.3f : 2f;
+
+        DOTween.To(() => height, x => {
+            _controller.height = x;
+        }, height, duration);
+
+        _camera.transform.DOLocalMoveY(height - 0.1f, duration);
     }
 
     private Vector3 GetMovementDirection()
