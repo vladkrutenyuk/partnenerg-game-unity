@@ -28,9 +28,13 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] private CharacterController _controller;
 	[SerializeField] private Camera _camera;
 
+    public enum MovementType {Walk, Run, Crouch};
+    public MovementType movementType;
+
 	private void Update()
 	{
         _isGrounded = IsGrounded();
+        SetMovementType();
         _motion = Vector3.zero;
 		_movementComponent = GetMovementDirection() * GetMovementSpeed();
 
@@ -66,6 +70,31 @@ public class PlayerController : MonoBehaviour
 		ApplyRotation();
 	}
 
+    private void SetMovementType()
+    {
+        movementType = MovementType.Walk;
+
+        if(Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Vertical") > 0)
+        {
+            movementType = MovementType.Run;
+        }
+
+        if(Input.GetKey(KeyCode.LeftControl))
+        {
+            movementType = MovementType.Crouch;
+        }
+
+        if(Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            movementType = MovementType.Crouch;
+        } 
+    }
+
+    private void SetCrouchMovementType(bool isEnabled)
+    {
+        
+    }
+
     private Vector3 GetMovementDirection()
     {
         Vector3 direction = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
@@ -79,18 +108,20 @@ public class PlayerController : MonoBehaviour
 
     private float GetMovementSpeed()
     {
-        float speed = _speedWalk;
-
-        if(Input.GetKey(KeyCode.LeftShift))
+        switch (movementType)
         {
-            speed = _speedRun;
-        }
-        if(Input.GetKey(KeyCode.LeftControl))
-        {
-            speed = _speedCrouch;
-        }
+            case MovementType.Walk:
+                return _speedWalk;
 
-        return speed;
+            case MovementType.Run:
+                return _speedRun;
+
+            case MovementType.Crouch:
+                return _speedCrouch;
+
+            default :
+                return 0;
+        }
     }
 
     private IEnumerator Jump()
