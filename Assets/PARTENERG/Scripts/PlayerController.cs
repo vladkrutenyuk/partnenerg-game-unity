@@ -79,6 +79,11 @@ public class PlayerController : MonoBehaviour
             movementType = MovementType.Run;
         }
 
+        if(Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            SetCrouchMovementType(true);
+        }
+
         if(Input.GetKey(KeyCode.LeftControl))
         {
             movementType = MovementType.Crouch;
@@ -86,13 +91,22 @@ public class PlayerController : MonoBehaviour
 
         if(Input.GetKeyUp(KeyCode.LeftControl))
         {
-            movementType = MovementType.Crouch;
+            SetCrouchMovementType(false);
         } 
     }
 
-    private void SetCrouchMovementType(bool isEnabled)
+    private void SetCrouchMovementType(bool isCrouched)
     {
-        
+        if(isCrouched)
+        {
+            _controller.height = 1f;
+            _camera.transform.localPosition += new Vector3(0, -1f, 0);
+        }
+        else
+        {
+            _controller.height = 2f;
+            _camera.transform.localPosition += new Vector3(0, 1f, 0);
+        }
     }
 
     private Vector3 GetMovementDirection()
