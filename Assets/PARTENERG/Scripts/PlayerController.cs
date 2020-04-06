@@ -6,11 +6,11 @@ using DG.Tweening;
 public class PlayerController : MonoBehaviour
 {
 	private const float _speedWalk = 4f;
-	private const float _speedRun = 8f;
+	private const float _speedRun = 6.5f;
 	private const float _speedCrouch = 2f;
     private const float _speedJump = 5f;
     private const float _verticalInputFlightFactor = 0.1f;
-    private const float _horizontalInputFlightFactor = 0.3f;
+    private const float _horizontalInputFlightFactor = 0.1f;
     private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
     private const float _crouchedControllerHeight = 1.3f;
