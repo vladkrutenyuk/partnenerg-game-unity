@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private const float _speedMoveInFlight = 2f;
     private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
+    private const float _crouchedControllerHeight = 1.3f;
 	private const float _mouseSensitivity = 3f;
     private const float _minRotationX = -70f;
 	private const float _maxRotationX = 80f;
@@ -22,15 +23,23 @@ public class PlayerController : MonoBehaviour
     private Vector3 _impulseComponent;
     private Vector3 _jumpComponent;
 
-    private float _gravityComponent = 0f;
+    private float _gravityComponent;
     private float _currentRotationX;
+    private float _controllerHeight;
+    private float _controllerCenterY;
     private bool _isGrounded = true;
 
 	[SerializeField] private CharacterController _controller;
 	[SerializeField] private Camera _camera;
 
     public enum MovementType {Walk, Run, Crouch};
-    public MovementType movementType;
+    [HideInInspector] public MovementType movementType;
+
+    private void Start() 
+    {
+        _controllerHeight = _controller.height;
+        _controllerCenterY = _controller.center.y;
+    }
 
 	private void Update()
 	{
@@ -99,14 +108,29 @@ public class PlayerController : MonoBehaviour
     private void SetCrouchMovementType(bool isCrouched)
     {
         float duration = 0.4f;
+        float toHeight;
+        float toCenter;
 
-        float height = isCrouched ? 1.3f : 2f;
-
-        DOTween.To(() => height, x => {
+        if(isCrouched)
+        {
+            toHeight = _crouchedControllerHeight;
+            toCenter = _controllerCenterY - (_controllerHeight - _crouchedControllerHeight) / 2f;
+        }
+        else
+        {
+            toHeight = _controllerHeight;
+            toCenter = _controllerCenterY;
+        }
+        
+        DOTween.To(() => _controller.height, x => {
             _controller.height = x;
-        }, height, duration);
+        }, toHeight, duration);
 
-        _camera.transform.DOLocalMoveY(height - 0.1f, duration);
+        DOTween.To(() => _controller.center.y, x => {
+            _controller.center = new Vector3 (0, x, 0);
+        }, toCenter, duration);
+
+        _camera.transform.DOLocalMoveY(toHeight - 0.1f, duration);
     }
 
     private Vector3 GetMovementDirection()
