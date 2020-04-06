@@ -6,10 +6,11 @@ using DG.Tweening;
 public class PlayerController : MonoBehaviour
 {
 	private const float _speedWalk = 4f;
-	private const float _speedRun = 8f;
+	private const float _speedRun = 6.5f;
 	private const float _speedCrouch = 2f;
     private const float _speedJump = 5f;
-    private const float _speedMoveInFlight = 2f;
+    private const float _verticalInputFlightFactor = 0.1f;
+    private const float _horizontalInputFlightFactor = 0.1f;
     private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
     private const float _crouchedControllerHeight = 1.3f;
@@ -66,7 +67,6 @@ public class PlayerController : MonoBehaviour
         else
         {
             _gravityComponent -= _gravity * Time.deltaTime;
-            _movementComponent = Vector3.ClampMagnitude(_movementComponent, _speedMoveInFlight);
             _savedMotion = Vector3.ClampMagnitude(_savedMotion + _movementComponent, _savedMotion.magnitude);
             _motion = _savedMotion + new Vector3(0, _gravityComponent, 0);
         }
@@ -143,7 +143,17 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 GetMovementDirection()
     {
-        Vector3 direction = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        float verticalFactor = 1f;
+        float horizontalFactor = 1f;
+        if(!_isGrounded)
+        {
+            verticalFactor = _verticalInputFlightFactor;
+            horizontalFactor = _horizontalInputFlightFactor;
+        }
+
+        Vector3 direction = new Vector3(
+            Input.GetAxis("Horizontal") * horizontalFactor, 0, Input.GetAxis("Vertical") * verticalFactor);
+
         direction = transform.TransformDirection(direction);
         direction.y = ConsiderGroundSlope(direction);
 
