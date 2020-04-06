@@ -403,6 +403,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _controller: {fileID: 462962649}
   _camera: {fileID: 1958459510}
+  movementType: 0
 --- !u!1 &484075921
 GameObject:
   m_ObjectHideFlags: 0

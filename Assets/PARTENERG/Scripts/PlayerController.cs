@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using DG.Tweening;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
@@ -11,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private const float _speedMoveInFlight = 2f;
     private const float _impulseCounterDivider = 10f;
 	private const float _gravity = 10f;
+    private const float _crouchedControllerHeight = 1.3f;
 	private const float _mouseSensitivity = 3f;
     private const float _minRotationX = -70f;
 	private const float _maxRotationX = 80f;
@@ -21,16 +23,28 @@ public class PlayerController : MonoBehaviour
     private Vector3 _impulseComponent;
     private Vector3 _jumpComponent;
 
-    private float _gravityComponent = 0f;
+    private float _gravityComponent;
     private float _currentRotationX;
+    private float _controllerHeight;
+    private float _controllerCenterY;
     private bool _isGrounded = true;
 
 	[SerializeField] private CharacterController _controller;
 	[SerializeField] private Camera _camera;
 
+    public enum MovementType {Walk, Run, Crouch};
+    [HideInInspector] public MovementType movementType;
+
+    private void Start() 
+    {
+        _controllerHeight = _controller.height;
+        _controllerCenterY = _controller.center.y;
+    }
+
 	private void Update()
 	{
         _isGrounded = IsGrounded();
+        SetMovementType();
         _motion = Vector3.zero;
 		_movementComponent = GetMovementDirection() * GetMovementSpeed();
 
@@ -66,6 +80,59 @@ public class PlayerController : MonoBehaviour
 		ApplyRotation();
 	}
 
+    private void SetMovementType()
+    {
+        movementType = MovementType.Walk;
+
+        if(Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Vertical") > 0)
+        {
+            movementType = MovementType.Run;
+        }
+
+        if(Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            SetCrouchMovementType(true);
+        }
+
+        if(Input.GetKey(KeyCode.LeftControl))
+        {
+            movementType = MovementType.Crouch;
+        }
+
+        if(Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            SetCrouchMovementType(false);
+        } 
+    }
+
+    private void SetCrouchMovementType(bool isCrouched)
+    {
+        float duration = 0.4f;
+        float toHeight;
+        float toCenter;
+
+        if(isCrouched)
+        {
+            toHeight = _crouchedControllerHeight;
+            toCenter = _controllerCenterY - (_controllerHeight - _crouchedControllerHeight) / 2f;
+        }
+        else
+        {
+            toHeight = _controllerHeight;
+            toCenter = _controllerCenterY;
+        }
+        
+        DOTween.To(() => _controller.height, x => {
+            _controller.height = x;
+        }, toHeight, duration);
+
+        DOTween.To(() => _controller.center.y, x => {
+            _controller.center = new Vector3 (0, x, 0);
+        }, toCenter, duration);
+
+        _camera.transform.DOLocalMoveY(toHeight - 0.1f, duration);
+    }
+
     private Vector3 GetMovementDirection()
     {
         Vector3 direction = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
@@ -79,18 +146,20 @@ public class PlayerController : MonoBehaviour
 
     private float GetMovementSpeed()
     {
-        float speed = _speedWalk;
-
-        if(Input.GetKey(KeyCode.LeftShift))
+        switch (movementType)
         {
-            speed = _speedRun;
-        }
-        if(Input.GetKey(KeyCode.LeftControl))
-        {
-            speed = _speedCrouch;
-        }
+            case MovementType.Walk:
+                return _speedWalk;
 
-        return speed;
+            case MovementType.Run:
+                return _speedRun;
+
+            case MovementType.Crouch:
+                return _speedCrouch;
+
+            default :
+                return 0;
+        }
     }
 
     private IEnumerator Jump()
