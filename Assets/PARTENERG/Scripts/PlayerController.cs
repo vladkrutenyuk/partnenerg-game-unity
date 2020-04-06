@@ -29,6 +29,8 @@ public class PlayerController : MonoBehaviour
     private float _controllerCenterY;
     private bool _isGrounded = true;
 
+    private RaycastHit groundHit;
+
 	[SerializeField] private CharacterController _controller;
 	[SerializeField] private Camera _camera;
 
@@ -44,6 +46,7 @@ public class PlayerController : MonoBehaviour
 	private void Update()
 	{
         _isGrounded = IsGrounded();
+
         SetMovementType();
         _motion = Vector3.zero;
 		_movementComponent = GetMovementDirection() * GetMovementSpeed();
@@ -69,16 +72,21 @@ public class PlayerController : MonoBehaviour
         }
 
         _motion += _impulseComponent + _jumpComponent;
-
 		_controller.Move(_motion * Time.deltaTime);
 
+		ApplyRotation();
+
+        DrawVectorDebugRays();
+	}
+
+    private void DrawVectorDebugRays()
+    {
+        Debug.DrawRay(groundHit.point, groundHit.normal, Color.red);
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _movementComponent, Color.white);
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _motion, Color.blue);
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), new Vector3(0, _gravityComponent, 0), Color.green);
         Debug.DrawRay(transform.position + (Vector3.up * _controller.radius), _impulseComponent, Color.yellow);
-
-		ApplyRotation();
-	}
+    }
 
     private void SetMovementType()
     {
@@ -195,20 +203,16 @@ public class PlayerController : MonoBehaviour
 
     private bool IsGrounded()
     {
-        RaycastHit hit;
 		Vector3 origin = transform.position + (Vector3.up * _controller.radius);
-		return Physics.SphereCast(origin, _controller.radius, Vector3.down, out hit, 0.1f);
+		return Physics.SphereCast(origin, _controller.radius, Vector3.down, out groundHit, 0.1f);
     }
 
 	private float ConsiderGroundSlope(Vector3 velocity)
 	{
-		RaycastHit hit;
-		Vector3 center = transform.position + (Vector3.up * _controller.radius);
-		if (Physics.SphereCast(center, _controller.radius, Vector3.down, out hit, 0.1f))
+		if (_isGrounded)
 		{
-			float angleA = Vector3.Angle(hit.normal, velocity); // Сам угл в градусах
+			float angleA = Vector3.Angle(groundHit.normal, velocity); // Сам угл в градусах
 			float angleB;
-			Debug.DrawRay(hit.point, hit.normal, Color.red);
 			
 			if(angleA > 91f & angleA <= 135f) // Подъем по склону
 			{
