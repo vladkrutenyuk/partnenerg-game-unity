@@ -403,6 +403,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 462962649}
+  mainCameraHolder: {fileID: 1604456796}
   movementType: 0
   mainCamera: {fileID: 1958459510}
 --- !u!114 &462962652
@@ -567,7 +568,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &963799988
 Transform:
   m_ObjectHideFlags: 0

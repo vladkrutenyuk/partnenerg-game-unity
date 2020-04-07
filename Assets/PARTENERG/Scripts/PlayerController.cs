@@ -5,18 +5,18 @@ using DG.Tweening;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-	private const float _speedWalk = 4f;
-	private const float _speedRun = 6.5f;
-	private const float _speedCrouch = 2f;
-    private const float _speedJump = 5f;
-    private const float _verticalInputFlightFactor = 0.1f;
-    private const float _horizontalInputFlightFactor = 0.1f;
-    private const float _impulseCounterDivider = 10f;
-	private const float _gravity = 10f;
-    private const float _crouchedControllerHeight = 1.3f;
-	private const float _mouseSensitivity = 3f;
-    private const float _minRotationX = -70f;
-	private const float _maxRotationX = 80f;
+	private const float SpeedWalk = 4f;
+	private const float SpeedRun = 6.5f;
+	private const float SpeedCrouch = 2f;
+    private const float SpeedJump = 5f;
+    private const float VerticalInputFlightFactor = 0.1f;
+    private const float HorizontalInputFlightFactor = 0.1f;
+    private const float ImpulseCounterDivider = 10f;
+	private const float Gravity = 10f;
+    private const float CrouchedControllerHeight = 1.3f;
+	private const float MouseSensitivity = 3f;
+    private const float MinRotationX = -70f;
+	private const float MaxRotationX = 80f;
 
     private Vector3 _motion;
     private Vector3 _savedMotion;
@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour
     private float _controllerCenterY;
 
     [SerializeField] private CharacterController controller;
+    [SerializeField] private Transform mainCameraHolder;
 
     public float gravityComponent {get; private set;}
     public bool isGrounded {get; private set;}
@@ -67,7 +68,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            gravityComponent -= _gravity * Time.deltaTime;
+            gravityComponent -= Gravity * Time.deltaTime;
             _savedMotion = Vector3.ClampMagnitude(_savedMotion + _movementComponent, _savedMotion.magnitude);
             _motion = _savedMotion + new Vector3(0, gravityComponent, 0);
         }
@@ -122,8 +123,8 @@ public class PlayerController : MonoBehaviour
 
         if(isCrouched)
         {
-            toHeight = _crouchedControllerHeight;
-            toCenter = _controllerCenterY - (_controllerHeight - _crouchedControllerHeight) / 2f;
+            toHeight = CrouchedControllerHeight;
+            toCenter = _controllerCenterY - (_controllerHeight - CrouchedControllerHeight) / 2f;
         }
         else
         {
@@ -139,7 +140,7 @@ public class PlayerController : MonoBehaviour
             controller.center = new Vector3 (0, x, 0);
         }, toCenter, duration);
 
-        mainCamera.transform.DOLocalMoveY(toHeight - 0.1f, duration);
+        mainCameraHolder.DOLocalMoveY(toHeight - 0.1f, duration);
     }
 
     private Vector3 GetMovementDirection()
@@ -148,8 +149,8 @@ public class PlayerController : MonoBehaviour
         float horizontalFactor = 1f;
         if(!isGrounded)
         {
-            verticalFactor = _verticalInputFlightFactor;
-            horizontalFactor = _horizontalInputFlightFactor;
+            verticalFactor = VerticalInputFlightFactor;
+            horizontalFactor = HorizontalInputFlightFactor;
         }
 
         Vector3 direction = new Vector3(
@@ -168,13 +169,13 @@ public class PlayerController : MonoBehaviour
         switch (movementType)
         {
             case MovementType.Walk:
-                return _speedWalk;
+                return SpeedWalk;
 
             case MovementType.Run:
-                return _speedRun;
+                return SpeedRun;
 
             case MovementType.Crouch:
-                return _speedCrouch;
+                return SpeedCrouch;
 
             default :
                 return 0;
@@ -183,7 +184,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator Jump()
     {
-        _jumpComponent = new Vector3(0, _speedJump, 0);
+        _jumpComponent = new Vector3(0, SpeedJump, 0);
 
         yield return new WaitForSeconds(0.1f);
         while(!isGrounded)
@@ -203,12 +204,12 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyRotation()
     {
-        Vector3 rotationY = new Vector3(0, Input.GetAxis("Mouse X"), 0) * _mouseSensitivity;
+        Vector3 rotationY = new Vector3(0, Input.GetAxis("Mouse X"), 0) * MouseSensitivity;
 		controller.transform.Rotate(rotationY);
 
-		float rotationX = Input.GetAxis("Mouse Y") * _mouseSensitivity;
+		float rotationX = Input.GetAxis("Mouse Y") * MouseSensitivity;
 		_currentRotationX -= rotationX;
-		_currentRotationX = Mathf.Clamp(_currentRotationX, _minRotationX, _maxRotationX);
+		_currentRotationX = Mathf.Clamp(_currentRotationX, MinRotationX, MaxRotationX);
 		mainCamera.transform.localEulerAngles = new Vector3(_currentRotationX, 0, 0);
     }
 
@@ -260,7 +261,7 @@ public class PlayerController : MonoBehaviour
         }
 
         float counterImpulseMult = Vector3.Dot(_impulseComponent.normalized, hit.normal.normalized);
-        counterImpulseMult = 1 - Mathf.Abs(counterImpulseMult) / _impulseCounterDivider;
+        counterImpulseMult = 1 - Mathf.Abs(counterImpulseMult) / ImpulseCounterDivider;
 
         _impulseComponent *= counterImpulseMult;
     }
