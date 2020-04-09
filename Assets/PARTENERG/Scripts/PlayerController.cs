@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 _impulseComponent;
     private Vector3 _jumpComponent;
 
-    private RaycastHit groundHit;
+    private RaycastHit _groundHit;
 
     private float _currentRotationX;
     private float _controllerHeight;
@@ -83,7 +83,7 @@ public class PlayerController : MonoBehaviour
 
     private void DrawVectorDebugRays()
     {
-        Debug.DrawRay(groundHit.point, groundHit.normal, Color.red);
+        Debug.DrawRay(_groundHit.point, _groundHit.normal, Color.red);
         Debug.DrawRay(transform.position + (Vector3.up * controller.radius), _movementComponent, Color.white);
         Debug.DrawRay(transform.position + (Vector3.up * controller.radius), _motion, Color.blue);
         Debug.DrawRay(transform.position + (Vector3.up * controller.radius), new Vector3(0, gravityComponent, 0), Color.green);
@@ -216,14 +216,14 @@ public class PlayerController : MonoBehaviour
     private bool IsGrounded()
     {
 		Vector3 origin = transform.position + (Vector3.up * controller.radius);
-		return Physics.SphereCast(origin, controller.radius, Vector3.down, out groundHit, 0.1f);
+		return Physics.SphereCast(origin, controller.radius, Vector3.down, out _groundHit, 0.1f);
     }
 
 	private float ConsiderGroundSlope(Vector3 velocity)
 	{
 		if (isGrounded)
 		{
-			float angleA = Vector3.Angle(groundHit.normal, velocity); // Сам угл в градусах
+			float angleA = Vector3.Angle(_groundHit.normal, velocity); // Сам угл в градусах
 			float angleB;
 			
 			if(angleA > 91f & angleA <= 135f) // Подъем по склону
