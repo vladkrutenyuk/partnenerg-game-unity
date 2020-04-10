@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Weapon
+public class Weapon : MonoBehaviour
 {
     public string name;
+    public AnimationClip idleAnimation;
 
 }
