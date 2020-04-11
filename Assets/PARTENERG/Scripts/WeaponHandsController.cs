@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class HandsController : MonoBehaviour
+public class WeaponHandsController : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     private bool _isOneHanded = false;
