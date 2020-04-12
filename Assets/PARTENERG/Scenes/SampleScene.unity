@@ -1396,6 +1396,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: Rifle
+  weaponSwitchTime: 0.714
   idleAnimation: {fileID: 7400000, guid: 2c72f0b19b6637b4e9c5f39104071898, type: 2}
   reloadAnimation: {fileID: 7400000, guid: 99623fe5f8efc8246ae4f36014648c52, type: 2}
 --- !u!1 &1057060424
@@ -2859,5 +2860,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: Pistol
+  weaponSwitchTime: 0.237
   idleAnimation: {fileID: 7400000, guid: 8187b4c8925b9664193a17c24b51e418, type: 2}
   reloadAnimation: {fileID: 7400000, guid: af75e27b542f0ab4a850a672f8610086, type: 2}
