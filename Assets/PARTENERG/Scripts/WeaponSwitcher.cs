@@ -5,15 +5,15 @@ using DG.Tweening;
 
 public class WeaponSwitcher : MonoBehaviour
 {
+    private const string AnimatorSwitchFloatName = "Space_Switch";
     private int _currentWeaponIndex;
+    private bool _isSwitching;
 
     private AnimatorOverrideController animatorOverrideController;
     private AnimationClipOverrides clipOverrides;
 
     [SerializeField] private Animator animator;
     [SerializeField] private List<Weapon> weapons;
-
-    private bool _isSwitching;
 
     private void Start() 
     {
@@ -31,7 +31,7 @@ public class WeaponSwitcher : MonoBehaviour
         clipOverrides = new AnimationClipOverrides(animatorOverrideController.overridesCount);
         animatorOverrideController.GetOverrides(clipOverrides);
 
-        //SetCurrentWeapon(0);
+        SetCurrentWeaponAnimations();
     }
 
     private void Update() 
@@ -62,11 +62,11 @@ public class WeaponSwitcher : MonoBehaviour
     {
         _isSwitching = true;      
 
-        DOTween.To(() => animator.GetFloat("Space_Switch"), x => {
-            animator.SetFloat("Space_Switch", x);
-        }, 1, 0.5f);
+        DOTween.To(() => animator.GetFloat(AnimatorSwitchFloatName), x => {
+            animator.SetFloat(AnimatorSwitchFloatName, x);
+        }, 1, weapons[_currentWeaponIndex].weaponSwitchTime);
 
-        while(animator.GetFloat("Space_Switch") < 1)
+        while(animator.GetFloat(AnimatorSwitchFloatName) < 1)
         {
             yield return null;
         }
@@ -78,11 +78,11 @@ public class WeaponSwitcher : MonoBehaviour
         SetCurrentWeaponAnimations();
         _isSwitching = false;  
 
-        DOTween.To(() => animator.GetFloat("Space_Switch"), x => {
-            animator.SetFloat("Space_Switch", x);
-        }, 0, 0.4f);
+        DOTween.To(() => animator.GetFloat(AnimatorSwitchFloatName), x => {
+            animator.SetFloat(AnimatorSwitchFloatName, x);
+        }, 0, weapons[_currentWeaponIndex].weaponSwitchTime);
 
-        while(animator.GetFloat("Space_Switch") > 0)
+        while(animator.GetFloat(AnimatorSwitchFloatName) > 0)
         {
             yield return null;
         }
