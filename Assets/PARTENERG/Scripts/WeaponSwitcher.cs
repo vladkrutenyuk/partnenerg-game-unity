@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class WeaponSwitcher : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class WeaponSwitcher : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private List<Weapon> weapons;
 
+    private bool _isSwitching;
+
     private void Start() 
     {
         for (int i = 0; i < weapons.Count; i++)
@@ -19,7 +22,6 @@ public class WeaponSwitcher : MonoBehaviour
             if(weapons[i].gameObject.activeSelf)
             {
                 _currentWeaponIndex = i;
-                Debug.Log(weapons[_currentWeaponIndex].weaponName);
             }
         }
 
@@ -29,30 +31,67 @@ public class WeaponSwitcher : MonoBehaviour
         clipOverrides = new AnimationClipOverrides(animatorOverrideController.overridesCount);
         animatorOverrideController.GetOverrides(clipOverrides);
 
-        SetCurrentWeapon(0);
+        //SetCurrentWeapon(0);
     }
 
     private void Update() 
     {
         if(Input.mouseScrollDelta.y != 0)
         {
-            SetCurrentWeapon((int)Input.mouseScrollDelta.y);
+            ApplyMouseScroll((int)Input.mouseScrollDelta.y);
         }
     }
 
-    private void SetCurrentWeapon(int mouseScroll)
+    private void ApplyMouseScroll(int mouseScroll)
     {
-        mouseScroll = Mathf.Clamp(mouseScroll, -1, 1);
+        if(_isSwitching)
+        {
+            return;
+        }   
 
-        // Change current weapon
+        int newWeaponIndex = Mathf.Clamp(_currentWeaponIndex - mouseScroll, 0, weapons.Count - 1);
+        
+        if(newWeaponIndex != _currentWeaponIndex)
+        {
+            StopCoroutine(SwitchWeapon(newWeaponIndex));
+            StartCoroutine(SwitchWeapon(newWeaponIndex));
+        }
+    }
+
+    private IEnumerator SwitchWeapon(int newIndex)
+    {
+        _isSwitching = true;      
+
+        DOTween.To(() => animator.GetFloat("Space_Switch"), x => {
+            animator.SetFloat("Space_Switch", x);
+        }, 1, 0.5f);
+
+        while(animator.GetFloat("Space_Switch") < 1)
+        {
+            yield return null;
+        }
+
         weapons[_currentWeaponIndex].gameObject.SetActive(false);
+        _currentWeaponIndex = newIndex;
+        weapons[_currentWeaponIndex].gameObject.SetActive(true);  
 
-        _currentWeaponIndex -= mouseScroll;
-        _currentWeaponIndex = Mathf.Clamp(_currentWeaponIndex, 0, weapons.Count - 1);
+        SetCurrentWeaponAnimations();
+        _isSwitching = false;  
 
-        weapons[_currentWeaponIndex].gameObject.SetActive(true);
+        DOTween.To(() => animator.GetFloat("Space_Switch"), x => {
+            animator.SetFloat("Space_Switch", x);
+        }, 0, 0.4f);
 
-        // Override animations for new current weapon
+        while(animator.GetFloat("Space_Switch") > 0)
+        {
+            yield return null;
+        }
+        
+        yield break;
+    }
+
+    private void SetCurrentWeaponAnimations()
+    {
         clipOverrides["Idle"] = weapons[_currentWeaponIndex].idleAnimation;
         clipOverrides["Reload"] = weapons[_currentWeaponIndex].reloadAnimation;
         animatorOverrideController.ApplyOverrides(clipOverrides);
